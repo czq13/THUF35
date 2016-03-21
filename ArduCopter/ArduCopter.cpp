@@ -75,6 +75,9 @@
 
 #include "Copter.h"
 
+//ch modified
+#include "AP_HAL_PX4/UARTDriver.h"
+
 #define SCHED_TASK(func, _interval_ticks, _max_time_micros) {\
     .function = FUNCTOR_BIND(&copter, &Copter::func, void),\
     AP_SCHEDULER_NAME_INITIALIZER(func)\
@@ -249,10 +252,22 @@ void Copter::loop()
     scheduler.run(time_available);
 }
 
-
 // Main loop - 400hz
 void Copter::fast_loop()
 {
+	//uartDDriver.
+	if (count > 0) {
+		hal.console->printf("buf = %s,count = %d\n",buf,count);
+		count1 = 0;
+	}
+	else {
+		count1++;
+		if (count1 > 800) {
+			hal.console->printf("we receive nothing \n");
+			count1 = 0;
+		}
+	}
+
 
     // IMU DCM Algorithm
     // --------------------
@@ -292,12 +307,26 @@ void Copter::fast_loop()
 
 // rc_loops - reads user input from transmitter/receiver
 // called at 100hz
+//ch modified
+static int count1 = 0;
 void Copter::rc_loop()
 {
     // Read radio and 3-position switch on radio
     // -----------------------------------------
     read_radio();
     read_control_switch();
+	//ch modified
+	unsigned char buf[256];
+	PX4::PX4UARTDriver* tmpUartD = (PX4::PX4UARTDriver*)hal.uartD;
+	int count = 0;
+
+	while(true){
+		int chtmp = tmpUartD->read();
+		if (chtmp == -1) {
+			break;
+		}
+		buf[count++] = chtmp;
+	}
 }
 
 // throttle_loop - should be run at 50 hz
