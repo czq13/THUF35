@@ -22,6 +22,9 @@ public:
     int16_t txspace();
     int16_t read();
 
+    //ch modified
+    int16_t ch_read(unsigned char* buf,int len);
+
     /* PX4 implementations of Print virtual methods */
     size_t write(uint8_t c);
     size_t write(const uint8_t *buffer, size_t size);

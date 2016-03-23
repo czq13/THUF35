@@ -282,7 +282,58 @@ int16_t PX4UARTDriver::read()
     BUF_ADVANCEHEAD(_readbuf, 1);
 	return c;
 }
-
+//p1 is tail,p2 is head
+#define CHGAP(p1,p2) (((p1) > (p2)) ? ((p1) - (p2)) : ((p1) - (p2) + _readbuf_size))
+#define CHBACK(p) (p - 1 > -1) ? (p-1) : (p + _readbuf_size -1)
+#define CHFORE(p) (p + 1 == _readbuf_size) ? 0 : (p+1)
+int16_t PX4UARTDriver::ch_read(unsigned char* buf,int len)
+{
+	//First,we will see if the gap between head and tail is long enough
+	if (CHGAP(_readbuf_tail,_readbuf_head) < len) {
+		return -1;
+	}
+	//Second,we fork two pointer.
+	uint16_t tail1 = CHBACK(_readbuf_tail);//point to the value
+	uint16_t tail2 = _readbuf_tail;//point to the not value
+	//Third,we scan from tail to see where is the first EB 90
+		//if meet with head:no package
+		//else if the gap from EB90 to the tail is long enough
+			//get all thing from EB90 to the tail
+		//else if the gap from EB90 to the tail is not long enough
+			//mark this position,when all finished
+	int16_t mark_pos = -1;
+	while(tail1 != _readbuf_head){
+		uint16_t ttail = tail1;
+		tail1 = CHBACK(tail1);
+		if ((uint8_t)_readbuf[tail1] == 0x55 && (uint8_t)_readbuf[ttail] == 0xAA) {
+			if (mark_pos < 0) {
+				mark_pos = tail1;//we will move head at this position in the future
+			}
+			if (CHGAP(tail2,tail1) < len) {
+				tail2 = tail1;
+				continue;
+			}
+			for (int i = 0;i < len ;i ++){
+				buf[i] = _readbuf[tail1];
+				tail1 = CHFORE(tail1);
+			}
+			break;
+		}
+	}
+	if (mark_pos < 0) {//never find EB90
+		return -1;
+	}
+	else {
+		if (CHGAP(_readbuf_tail,mark_pos) < CHGAP(_readbuf_tail,tail1)) {
+			_readbuf_head = mark_pos;
+		}
+		else {
+			_readbuf_head = tail1;
+		}
+		//cout << "mark_pos=" << mark_pos << endl;
+		return 1;
+	}
+}
 /* 
    write one byte to the buffer
  */
