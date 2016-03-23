@@ -77,6 +77,7 @@
 
 //ch modified
 #include "AP_HAL_PX4/UARTDriver.h"
+#include "AP_CHdata/Servo_data.h"
 
 #define SCHED_TASK(func, _interval_ticks, _max_time_micros) {\
     .function = FUNCTOR_BIND(&copter, &Copter::func, void),\
@@ -101,6 +102,7 @@
   4000 = 0.1hz
   
  */
+
 const AP_Scheduler::Task Copter::scheduler_tasks[] PROGMEM = {
     SCHED_TASK(rc_loop,                4,    130),
     SCHED_TASK(throttle_loop,          8,     75),
@@ -255,20 +257,6 @@ void Copter::loop()
 // Main loop - 400hz
 void Copter::fast_loop()
 {
-	//uartDDriver.
-	if (count > 0) {
-		hal.console->printf("buf = %s,count = %d\n",buf,count);
-		count1 = 0;
-	}
-	else {
-		count1++;
-		if (count1 > 800) {
-			hal.console->printf("we receive nothing \n");
-			count1 = 0;
-		}
-	}
-
-
     // IMU DCM Algorithm
     // --------------------
     read_AHRS();
@@ -309,6 +297,9 @@ void Copter::fast_loop()
 // called at 100hz
 //ch modified
 static int count1 = 0;
+unsigned char buf[256];
+int count = 0;
+Servo_data tServo;
 void Copter::rc_loop()
 {
     // Read radio and 3-position switch on radio
@@ -316,17 +307,30 @@ void Copter::rc_loop()
     read_radio();
     read_control_switch();
 	//ch modified
-	unsigned char buf[256];
-	PX4::PX4UARTDriver* tmpUartD = (PX4::PX4UARTDriver*)hal.uartD;
-	int count = 0;
 
-	while(true){
-		int chtmp = tmpUartD->read();
-		if (chtmp == -1) {
-			break;
-		}
-		buf[count++] = chtmp;
+	PX4::PX4UARTDriver* tmpUartD = (PX4::PX4UARTDriver*)hal.uartD;
+
+	//ch modified
+
+	count = tmpUartD->ch_read(buf,11);
+
+	//uartDDriver.
+	if (count > 0) {
+		memcpy(&tServo,buf,11);
+		printf("******Servo_data display*******\n");
+		float tpos = (float)tServo.pos / 1000.0;
+		float tvel = (float)tServo.vel / 1000.0;
+		printf("len=%d,status=%d,pos=%f,vel=%f\n",tServo.len,tServo.status,tpos,tvel);
+		count = -1;
 	}
+	else {
+		count1++;
+		if (count1 > 800) {
+			printf("we receive nothing \n");
+			count1 = 0;
+		}
+	}
+
 }
 
 // throttle_loop - should be run at 50 hz
