@@ -166,6 +166,9 @@ void AP_MotorsMatrix::output_armed_not_stabilizing()
     }
 }
 
+//ch modified
+static int ch_pwm = 1020;
+static int ch_direction = 0;
 // output_armed - sends commands to the motors
 // includes new scaling stability patch
 // TODO pull code that is common to output_armed_not_stabilizing into helper functions
@@ -360,6 +363,21 @@ void AP_MotorsMatrix::output_armed_stabilizing()
             hal.rcout->write(i, motor_out[i]);
         }
     }
+    //ch : we should examine code here
+    //first , we should print sth.ok,this is ok.
+    //hal.console->printf("ch:AP_MotorsMatrix.cpp\n");
+    //second, we should reassure which port we should use
+    /*if (ch_pwm > 1900)
+    	ch_direction = 0;
+    else if(ch_pwm < 1020)
+    	ch_direction = 1;
+    if (ch_direction == 0)
+    	ch_pwm--;
+    else if ( ch_direction == 1)
+    	ch_pwm++;*/
+    hal.rcout->write(8,1314);
+    hal.rcout->write(8,1626);
+    //at last, control the motor
 }
 
 // output_disarmed - sends commands to the motors
