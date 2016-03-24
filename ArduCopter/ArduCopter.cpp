@@ -73,11 +73,11 @@
  *
  */
 
+#include "../libraries/AP_CHuart/AP_CHuart.h"
 #include "Copter.h"
 
 //ch modified
-#include "AP_HAL_PX4/UARTDriver.h"
-#include "AP_CHdata/Servo_data.h"
+
 
 #define SCHED_TASK(func, _interval_ticks, _max_time_micros) {\
     .function = FUNCTOR_BIND(&copter, &Copter::func, void),\
@@ -295,11 +295,7 @@ void Copter::fast_loop()
 
 // rc_loops - reads user input from transmitter/receiver
 // called at 100hz
-//ch modified
-static int count1 = 0;
-unsigned char buf[256];
-int count = 0;
-Servo_data tServo;
+
 void Copter::rc_loop()
 {
     // Read radio and 3-position switch on radio
@@ -307,30 +303,8 @@ void Copter::rc_loop()
     read_radio();
     read_control_switch();
 	//ch modified
-
-	PX4::PX4UARTDriver* tmpUartD = (PX4::PX4UARTDriver*)hal.uartD;
-
-	//ch modified
-
-	count = tmpUartD->ch_read(buf,11);
-
-	//uartDDriver.
-	if (count > 0) {
-		memcpy(&tServo,buf,11);
-		printf("******Servo_data display*******\n");
-		float tpos = (float)tServo.pos / 1000.0;
-		float tvel = (float)tServo.vel / 1000.0;
-		printf("len=%d,status=%d,pos=%f,vel=%f\n",tServo.len,tServo.status,tpos,tvel);
-		count = -1;
-	}
-	else {
-		count1++;
-		if (count1 > 800) {
-			printf("we receive nothing \n");
-			count1 = 0;
-		}
-	}
-
+    chuart.send_token();
+    chuart.readUart();
 }
 
 // throttle_loop - should be run at 50 hz
