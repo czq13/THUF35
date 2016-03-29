@@ -266,7 +266,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
             limit.yaw = true;
         }
     }
-
+    yaw_allowed = 0;
     // add yaw to intermediate numbers for each motor
     rpy_low = 0;
     rpy_high = 0;
