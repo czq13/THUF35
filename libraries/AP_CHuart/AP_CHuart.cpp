@@ -12,6 +12,7 @@
 
 #include "string.h"
 #include <AP_HAL/AP_HAL.h>
+extern const AP_HAL::HAL& hal;
 
 
 void AP_CHuart::display_data(uint8_t t){
@@ -32,9 +33,15 @@ uint8_t AP_CHuart::readUart(){
 	uint8_t count = tmpUartD->ch_read(buf,11);
 	if (count > 0) {
 		uint8_t tmp = buf[3];
-		update_data(buf,tmp - 1);
+		num = tmp - 1;
+		update_data(buf,num);
 		return 1;
 	}
 	return -1;
+}
+AP_CHuart::AP_CHuart():servoN(2),servo_ToSend(0){
+		tmpUartD = (PX4::PX4UARTDriver*)hal.uartD;
+		token.head1 = 0x055;
+		token.head2 = 0x0AA;
 }
 AP_CHuart chuart;
