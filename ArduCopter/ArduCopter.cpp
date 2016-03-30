@@ -304,7 +304,9 @@ void Copter::rc_loop()
     read_control_switch();
 	//ch modified
     chuart.send_token();
-    chuart.readUart();
+    if (chuart.readUart() > 0) {
+    	DataFlash.Log_Write_Act(chuart.sd[chuart.num],chuart.num);
+    }
 }
 
 // throttle_loop - should be run at 50 hz
