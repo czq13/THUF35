@@ -1711,8 +1711,8 @@ void DataFlash_Class::Log_Write_Act(Servo_data &tuart,uint8_t num){
 		struct log_CHACT1 pkt = {
 				LOG_PACKET_HEADER_INIT(LOG_CHACT1_MSG),
 				time_us     : hal.scheduler->micros64(),
-				pos1		: (float)(tuart.pos/1000.0),
-				vel1		: (float)(tuart.vel/1000.0)
+				pos1		: (float)(tuart.pos)/(float)1000.0,
+				vel1		: (float)(tuart.vel)/(float)1000.0
 		};
 		WriteBlock(&pkt, sizeof(pkt));
 	}
@@ -1720,8 +1720,8 @@ void DataFlash_Class::Log_Write_Act(Servo_data &tuart,uint8_t num){
 		struct log_CHACT1 pkt = {
 				LOG_PACKET_HEADER_INIT(LOG_CHACT2_MSG),
 				time_us     : hal.scheduler->micros64(),
-				pos1		: (float)(tuart.pos/1000.0),
-				vel1		: (float)(tuart.vel/1000.0)
+				pos1		: (float)(tuart.pos)/(float)1000.0,
+				vel1		: (float)(tuart.vel)/(float)1000.0
 		};
 		WriteBlock(&pkt, sizeof(pkt));
 	}
