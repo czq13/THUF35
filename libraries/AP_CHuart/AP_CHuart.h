@@ -21,6 +21,7 @@ struct Servo_token {
 	uint8_t head1;
 	uint8_t head2;
 	uint8_t num;
+	uint8_t parse;
 };
 class AP_CHuart {
 private:
