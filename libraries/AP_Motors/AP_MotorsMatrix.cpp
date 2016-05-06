@@ -22,6 +22,7 @@
 #include <AP_HAL/AP_HAL.h>
 #include "AP_MotorsMatrix.h"
 
+#include "stdio.h"
 extern const AP_HAL::HAL& hal;
 
 // Init
@@ -166,6 +167,9 @@ void AP_MotorsMatrix::output_armed_not_stabilizing()
     }
 }
 
+//ch modified
+static int ch_pwm = 1020;
+static int ch_direction = 0;
 // output_armed - sends commands to the motors
 // includes new scaling stability patch
 // TODO pull code that is common to output_armed_not_stabilizing into helper functions
@@ -211,7 +215,6 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     pitch_pwm = calc_pitch_pwm();
     yaw_pwm = calc_yaw_pwm();
     throttle_radio_output = calc_throttle_radio_output();
-
     // calculate roll and pitch for each motor
     // set rpy_low and rpy_high to the lowest and highest values of the motors
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
@@ -263,7 +266,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
             limit.yaw = true;
         }
     }
-
+    yaw_allowed = 0;
     // add yaw to intermediate numbers for each motor
     rpy_low = 0;
     rpy_high = 0;
@@ -360,6 +363,30 @@ void AP_MotorsMatrix::output_armed_stabilizing()
             hal.rcout->write(i, motor_out[i]);
         }
     }
+    /*******************************************
+     * 添加者:THU czq
+     * 描述:测试代码
+     * 修改日期：2016/5/5
+     ******************************************* */
+    //first , we should print sth.ok,this is ok.
+    //hal.console->printf("ch:AP_MotorsMatrix.cpp\n");
+    //second, we should reassure which port we should use
+    /*if (ch_pwm > 1900)
+    	ch_direction = 0;
+    else if(ch_pwm < 1020)
+    	ch_direction = 1;
+    if (ch_direction == 0)
+    	ch_pwm--;
+    else if ( ch_direction == 1)
+    	ch_pwm++;*/
+    /*******************************************
+    * 添加者:THU czq
+    * 描述:用于控制舵机代码输出
+    * 修改日期：2016/5/5
+    ******************************************* */
+    hal.rcout->write(8,1314);
+    hal.rcout->write(9,1626);
+    //at last, control the motor
 }
 
 // output_disarmed - sends commands to the motors

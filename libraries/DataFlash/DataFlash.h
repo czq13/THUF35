@@ -20,6 +20,7 @@
 #include <AP_BattMonitor/AP_BattMonitor.h>
 #include <AP_RPM/AP_RPM.h>
 #include <AP_RangeFinder/AP_RangeFinder.h>
+#include <AP_CHuart/AP_CHuart.h>
 #include <stdint.h>
 
 #if CONFIG_HAL_BOARD == HAL_BOARD_PX4
@@ -122,6 +123,13 @@ public:
                                const AP_Mission::Mission_Command &cmd);
     void Log_Write_Origin(uint8_t origin_type, const Location &loc);
     void Log_Write_RPM(const AP_RPM &rpm_sensor);
+
+    /*******************************************
+     * 添加者:THU czq
+     * 描述:记录舵机数据的函数
+     * 修改日期：2016/5/6
+     ******************************************* */
+    void Log_Write_Act(Servo_data &tuart,uint8_t num);
 
     // This structure provides information on the internal member data of a PID for logging purposes
     struct PID_Info {
@@ -716,6 +724,18 @@ struct PACKED log_RPM {
     float rpm2;
 };
 
+/*******************************************
+ * struct: log_CHACT1
+ * 作者：THU czq
+ * 描述:记录舵机数据的结构
+ * 修改日期：2016/5/6
+ ******************************************* */
+struct PACKED log_CHACT1 {
+	LOG_PACKET_HEADER
+	uint64_t time_us;
+	float pos1,vel1;
+};
+
 /*
 Format characters in the format string for binary log messages
   b   : int8_t
@@ -784,7 +804,11 @@ Format characters in the format string for binary log messages
     { LOG_MODE_MSG, sizeof(log_Mode), \
       "MODE", "QMB",         "TimeUS,Mode,ModeNum" }, \
     { LOG_RFND_MSG, sizeof(log_RFND), \
-      "RFND", "QCC",         "TimeUS,Dist1,Dist2" }
+      "RFND", "QCC",         "TimeUS,Dist1,Dist2" }, \
+	  {LOG_CHACT1_MSG, sizeof(log_CHACT1),\
+      "ACT1","Qff",	"TimeUS,ACT1pos,ACT1vel"},\
+	  {LOG_CHACT2_MSG,sizeof(log_CHACT1),\
+      "ACT2","Qff",	"TimeUS,ACT2pos,ACT2vel"}
 
 // messages for more advanced boards
 #define LOG_EXTRA_STRUCTURES \
@@ -981,6 +1005,8 @@ enum LogMessages {
     LOG_NKF3_MSG,
     LOG_NKF4_MSG,
     LOG_NKF5_MSG,
+	LOG_CHACT1_MSG,
+	LOG_CHACT2_MSG,
 };
 
 enum LogOriginType {

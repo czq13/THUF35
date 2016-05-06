@@ -73,6 +73,12 @@
  *
  */
 
+/*******************************************
+ * 添加者:THU czq
+ * 描述:使得该文件可以调用串口函数
+ * 修改日期：2016/5/5
+ ******************************************* */
+#include "../libraries/AP_CHuart/AP_CHuart.h"
 #include "Copter.h"
 
 #define SCHED_TASK(func, _interval_ticks, _max_time_micros) {\
@@ -98,6 +104,7 @@
   4000 = 0.1hz
   
  */
+
 const AP_Scheduler::Task Copter::scheduler_tasks[] PROGMEM = {
     SCHED_TASK(rc_loop,                4,    130),
     SCHED_TASK(throttle_loop,          8,     75),
@@ -249,11 +256,9 @@ void Copter::loop()
     scheduler.run(time_available);
 }
 
-
 // Main loop - 400hz
 void Copter::fast_loop()
 {
-
     // IMU DCM Algorithm
     // --------------------
     read_AHRS();
@@ -292,12 +297,22 @@ void Copter::fast_loop()
 
 // rc_loops - reads user input from transmitter/receiver
 // called at 100hz
+
 void Copter::rc_loop()
 {
     // Read radio and 3-position switch on radio
     // -----------------------------------------
     read_radio();
     read_control_switch();
+    /*******************************************
+     * 添加者:程志强
+     * 描述:首先向两个舵机发送指令，然后接受数据，并向日志中书写数据
+     * 修改日期：2016/5/5
+     ******************************************* */
+    chuart.send_token();
+    if (chuart.readUart() > 0) {
+    	DataFlash.Log_Write_Act(chuart.sd[chuart.num],chuart.num);
+    }
 }
 
 // throttle_loop - should be run at 50 hz
