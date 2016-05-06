@@ -211,15 +211,10 @@ void AP_MotorsMatrix::output_armed_stabilizing()
         limit.throttle_upper = true;
     }
 
-//ch:modified we should print radio data this place
     roll_pwm = calc_roll_pwm();
     pitch_pwm = calc_pitch_pwm();
     yaw_pwm = calc_yaw_pwm();
     throttle_radio_output = calc_throttle_radio_output();
-    //printf("throttle_radio_output=%d,roll_pwm=%d,_roll_control_input=%f\n",throttle_radio_output,roll_pwm,_roll_control_input);
-
-   //printf("pitch_pwm = %d,_pitch_control_input=%f\n",pitch_pwm,_pitch_control_input);
-   // printf("yaw_pwm= %d,_yaw_control_input=%f\n",yaw_pwm,_yaw_control_input);
     // calculate roll and pitch for each motor
     // set rpy_low and rpy_high to the lowest and highest values of the motors
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
@@ -368,7 +363,11 @@ void AP_MotorsMatrix::output_armed_stabilizing()
             hal.rcout->write(i, motor_out[i]);
         }
     }
-    //ch : we should examine code here
+    /*******************************************
+     * 添加者:THU czq
+     * 描述:测试代码
+     * 修改日期：2016/5/5
+     ******************************************* */
     //first , we should print sth.ok,this is ok.
     //hal.console->printf("ch:AP_MotorsMatrix.cpp\n");
     //second, we should reassure which port we should use
@@ -380,6 +379,11 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     	ch_pwm--;
     else if ( ch_direction == 1)
     	ch_pwm++;*/
+    /*******************************************
+    * 添加者:THU czq
+    * 描述:用于控制舵机代码输出
+    * 修改日期：2016/5/5
+    ******************************************* */
     hal.rcout->write(8,1314);
     hal.rcout->write(9,1626);
     //at last, control the motor
