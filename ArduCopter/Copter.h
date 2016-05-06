@@ -124,7 +124,7 @@
 // Local modules
 #include "Parameters.h"
 
-#include <AP_CHuart/AP_CHuart.h>
+//#include <AP_CHuart/AP_CHuart.h>
 
 class Copter {
     public:
