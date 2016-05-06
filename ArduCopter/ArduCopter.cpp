@@ -73,11 +73,13 @@
  *
  */
 
+/*******************************************
+ * 添加者:THU czq
+ * 描述:使得该文件可以调用串口函数
+ * 修改日期：2016/5/5
+ ******************************************* */
 #include "../libraries/AP_CHuart/AP_CHuart.h"
 #include "Copter.h"
-
-//ch modified
-
 
 #define SCHED_TASK(func, _interval_ticks, _max_time_micros) {\
     .function = FUNCTOR_BIND(&copter, &Copter::func, void),\
@@ -302,7 +304,11 @@ void Copter::rc_loop()
     // -----------------------------------------
     read_radio();
     read_control_switch();
-	//ch modified
+    /*******************************************
+     * 添加者:程志强
+     * 描述:首先向两个舵机发送指令，然后接受数据，并向日志中书写数据
+     * 修改日期：2016/5/5
+     ******************************************* */
     chuart.send_token();
     if (chuart.readUart() > 0) {
     	DataFlash.Log_Write_Act(chuart.sd[chuart.num],chuart.num);
