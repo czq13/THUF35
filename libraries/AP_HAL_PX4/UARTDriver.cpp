@@ -282,6 +282,14 @@ int16_t PX4UARTDriver::read()
     BUF_ADVANCEHEAD(_readbuf, 1);
 	return c;
 }
+/*****************************************
+ * function : PX4UARTDriver::ch_read
+ * 作者：THU czq
+ * 描述：用于从内存池中读出舵机数据。该函数从后往前读，可处理固定长度，固定开头的数据帧。未加校验和
+ * 日期：2016/5/5
+ * 输入：缓存地址，数据帧长度
+ * 输出：读包的长度。
+ ***************************************** */
 //p1 is tail,p2 is head
 #define CHGAP(p1,p2) (((p1) > (p2)) ? ((p1) - (p2)) : ((p1) - (p2) + _readbuf_size))
 #define CHBACK(p) (p - 1 > -1) ? (p-1) : (p + _readbuf_size -1)
