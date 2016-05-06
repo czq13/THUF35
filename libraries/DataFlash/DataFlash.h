@@ -124,7 +124,11 @@ public:
     void Log_Write_Origin(uint8_t origin_type, const Location &loc);
     void Log_Write_RPM(const AP_RPM &rpm_sensor);
 
-    //ch modified
+    /*******************************************
+     * 添加者:THU czq
+     * 描述:记录舵机数据的函数
+     * 修改日期：2016/5/6
+     ******************************************* */
     void Log_Write_Act(Servo_data &tuart,uint8_t num);
 
     // This structure provides information on the internal member data of a PID for logging purposes
@@ -720,7 +724,12 @@ struct PACKED log_RPM {
     float rpm2;
 };
 
-//ch modified
+/*******************************************
+ * struct: log_CHACT1
+ * 作者：THU czq
+ * 描述:记录舵机数据的结构
+ * 修改日期：2016/5/6
+ ******************************************* */
 struct PACKED log_CHACT1 {
 	LOG_PACKET_HEADER
 	uint64_t time_us;
