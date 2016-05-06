@@ -3,6 +3,7 @@
  *
  *  Created on: 2016年3月24日
  *      Author: Thinkpad
+ *      描述：暂时没有用该函数和该类
  */
 
 #include "AP_CHuartPack.h"
