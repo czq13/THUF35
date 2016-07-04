@@ -29,9 +29,9 @@ void AP_CHuart::display_data(uint8_t t){
 	//printf("******Servo_data display*******\n");
 	double tpos = (double)(sd[t].pos) ;/// (double)(1000.0);
 	tpos = tpos / 1000.0;
-	double tvel = (double)(sd[t].vel) ;/// (double)(1000.0);
-	tvel = tvel / 1000.0;
-	printf("input=%x,len=%x,status=%x,pos=%f,vel=%f\n",sd[t].input,sd[t].pos,sd[t].vel,tpos,tvel);
+	//double tvel = (double)(sd[t].vel) ;/// (double)(1000.0);
+	//tvel = tvel / 1000.0;
+	//printf("input=%x,len=%x,status=%x,pos=%f,vel=%f\n",sd[t].input,sd[t].pos,sd[t].vel,tpos,tvel);
 }
 /*****************************************
  * function : Servo_data
@@ -42,9 +42,9 @@ void AP_CHuart::display_data(uint8_t t){
  * 输出：无
  ***************************************** */
 void AP_CHuart::update_data(unsigned char* p1,uint8_t t){
-	memcpy(&(sd[t]),p1,11);
+	memcpy(&(sd[t]),p1,sizeof(Servo_data));
 	//if debug
-	for (int i = 0;i < 11;i++)
+	for (unsigned int i = 0;i < sizeof(Servo_data);i++)
 		printf("%x ",p1[i]);
 	printf("\n");
 	display_data(num);
@@ -58,9 +58,20 @@ void AP_CHuart::update_data(unsigned char* p1,uint8_t t){
  * 输出：无
  ***************************************** */
 void AP_CHuart::send_token(){
-	token.num = servo_ToSend + 1;
-	token.parse = 0x00;
+	token.servo_token.num = servo_ToSend + 1;
+
 	servo_ToSend = (servo_ToSend + 1) % servoN;
+	if (token.servo_token.num == 1) {
+		token.servo_token.timer = ctimer1++;
+		token.servo_token.input = (int16_t) (sInput1 * 10.0);
+	}
+	else {
+		token.servo_token.timer = ctimer2++;
+		token.servo_token.input = (int16_t) (sInput2 * 10.0);
+	}
+	token.servo_token.checkSum = 0;
+	for (int8_t i = 2;i < 7;i++)
+		token.servo_token.checkSum += token.data[i];
 	tmpUartD->write((const uint8_t*)&token,sizeof(token));
 }
 /*****************************************
@@ -70,22 +81,42 @@ void AP_CHuart::send_token(){
  * 日期：2016/5/5
  * 输入：无
  * 输出：成功与否
+ * 修改：加入了chesum校验，为了配合收发多帧，改进了收取方式
  ***************************************** */
-uint8_t AP_CHuart::readUart(){
-	uint8_t count = tmpUartD->ch_read(buf,11);
+int8_t AP_CHuart::readUart(){
+	int16_t count = tmpUartD->ch_read(buf,8);
 	if (count > 0) {
-		uint8_t tmp = buf[3];
-		num = tmp - 1;
-		if (num > 1)
-			return -1;
-		update_data(buf,num);
+		for (uint16_t i = 0;i < count;i++) {
+			if ((uint8_t)buf[i] == 0x55 && (uint8_t)buf[i+1] == 0xAA) {
+				//checksum
+				uint8_t csum = 0;
+				for (int8_t j = 2;j < 7;j++)
+					csum += (uint8_t) buf[i+j];
+				if (csum != (uint8_t) buf[i+7]) {
+					printf("failed,count=%d\n",count);
+					continue;
+				}
+				uint8_t tmp = buf[i+6];
+				num = tmp -1;
+				if (num > 1) {
+					printf("failed @!\n");
+					continue;
+				}
+				update_data(buf+i,num);
+			}
+		}
 		return 1;
 	}
 	return -1;
 }
-AP_CHuart::AP_CHuart():servoN(2),servo_ToSend(0){
+void AP_CHuart::setServoCtrl(float c1,float c2) {
+	sInput1 = c1;
+	sInput2 = c2;
+}
+AP_CHuart::AP_CHuart():servoN(2),servo_ToSend(0),ctimer1(0),ctimer2(0),num(0),sInput1(0),sInput2(0){
 		tmpUartD = (PX4::PX4UARTDriver*)hal.uartD;
-		token.head1 = 0x055;
-		token.head2 = 0x0AA;
+		token.servo_token.head1 = 0x055;
+		token.servo_token.head2 = 0x0AA;
+		token.servo_token.sparse = 0x00;
 }
 AP_CHuart chuart;

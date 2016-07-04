@@ -24,11 +24,14 @@
 struct Servo_data {
 	uint8_t head1;
 	uint8_t head2;
-	uint8_t len;
-	uint8_t status;
-	int16_t input;
+	//uint8_t len;
+	//int16_t input;
 	int16_t pos;
-	int16_t vel;
+	//int16_t vel;
+	int16_t timer;
+	//int8_t parse1;
+	//int16_t parse2;
+	uint8_t status;
 	uint8_t checkSum;
 };
 /*****************************************
@@ -37,11 +40,20 @@ struct Servo_data {
  * 描述：用于向舵机发送令牌
  * 日期：2016/5/5
  ***************************************** */
-struct Servo_token {
-	uint8_t head1;
-	uint8_t head2;
-	uint8_t num;
-	uint8_t parse;
+union Servo_token{
+	struct {
+		uint8_t head1;
+		uint8_t head2;
+		int16_t input;
+		int16_t timer;
+		uint8_t num;
+		uint8_t checkSum;
+		uint8_t sparse;
+		uint8_t sparse1;
+		uint8_t sparse2;
+		uint8_t sparse3;
+	}servo_token;
+	uint8_t data[12];
 };
 /*****************************************
  * class : AP_CHuart
@@ -59,6 +71,10 @@ private:
 	uint8_t servo_ToSend;
 	PX4::PX4UARTDriver* tmpUartD;
 	unsigned char buf[256];
+	int16_t ctimer1;
+	int16_t ctimer2;
+	float sInput1;
+	float sInput2;
 public:
 	uint8_t num;
 	Servo_data sd[2];
@@ -66,7 +82,8 @@ public:
 	void update_data(unsigned char* p1,uint8_t t);
 	void display_data(uint8_t t);
 	void send_token();
-	uint8_t readUart();
+	void setServoCtrl(float c1,float c2);
+	int8_t readUart();
 };
 extern AP_CHuart chuart;
 
