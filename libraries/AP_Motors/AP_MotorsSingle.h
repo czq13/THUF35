@@ -9,7 +9,8 @@
 #include <AP_Common/AP_Common.h>
 #include <AP_Math/AP_Math.h>        // ArduPilot Mega Vector/Matrix math Library
 #include <RC_Channel/RC_Channel.h>     // RC Channel Library
-#include "AP_MotorsMulticopter.h"
+#include "AP_Motors.h"
+#include <RC_Channel/RC_Channel_aux.h>
 
 // feedback direction
 #define AP_MOTORS_SING_POSITIVE      1
@@ -21,16 +22,20 @@
 #define AP_MOTORS_SINGLE_SERVO_INPUT_RANGE      4500    // roll or pitch input of -4500 will cause servos to their minimum (i.e. radio_min), +4500 will move them to their maximum (i.e. radio_max)
 
 /// @class      AP_MotorsSingle
-class AP_MotorsSingle : public AP_MotorsMulticopter {
+class AP_MotorsSingle : public AP_MotorsMulticopter 
+{
 public:
-
     /// Constructor
+   
+  
     AP_MotorsSingle(RC_Channel& servo1, RC_Channel& servo2, RC_Channel& servo3, RC_Channel& servo4, uint16_t loop_rate, uint16_t speed_hz = AP_MOTORS_SPEED_DEFAULT) :
         AP_MotorsMulticopter(loop_rate, speed_hz),
         _servo1(servo1),
         _servo2(servo2),
         _servo3(servo3),
         _servo4(servo4)
+	
+		
     {
         AP_Param::setup_object_defaults(this, var_info);
     };
@@ -73,6 +78,7 @@ protected:
     RC_Channel&         _servo2;
     RC_Channel&         _servo3;
     RC_Channel&         _servo4;
+	
 };
 
 #endif  // AP_MOTORSSINGLE

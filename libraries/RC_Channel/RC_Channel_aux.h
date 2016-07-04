@@ -37,6 +37,8 @@ public:
 		AP_Param::setup_object_defaults(this, var_info);
     }
 
+	
+	
     typedef enum
     {
         k_none                  = 0,            ///< disabled
@@ -74,6 +76,8 @@ public:
 
     AP_Int8         function;           ///< see Aux_servo_function_t enum
 
+	
+	
     // output one auxillary channel
     void            output_ch(void);
 
@@ -120,8 +124,9 @@ public:
     static const struct AP_Param::GroupInfo        var_info[];
 
     // assigned and enable auxillary channels
-    static void enable_aux_servos(void);
+    static void enable_aux_servos(void);//原来的///
     
+	
     // prevent a channel from being used for auxillary functions
     static void disable_aux_channel(uint8_t channel);
 
@@ -129,11 +134,12 @@ public:
     static Aux_servo_function_t channel_function(uint8_t channel);
 
     // refresh aux servo to function mapping
-    static void update_aux_servo_function(void);
+    static void update_aux_servo_function(void);//修改//
 
 private:
     static uint32_t _function_mask;
     static RC_Channel_aux *_aux_channels[RC_AUX_MAX_CHANNELS];
 };
+
 
 #endif /* RC_CHANNEL_AUX_H_ */
