@@ -167,7 +167,8 @@ void Copter::set_throttle_and_failsafe(uint16_t throttle_pwm)
         channel_throttle->set_pwm(throttle_pwm);
     }
 }
-
+  
+ 
 #define THROTTLE_ZERO_DEBOUNCE_TIME_MS 400
 // set_throttle_zero_flag - set throttle_zero flag from debounced throttle control
 // throttle_zero is used to determine if the pilot intends to shut down the motors
