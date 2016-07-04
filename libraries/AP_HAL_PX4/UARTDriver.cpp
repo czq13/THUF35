@@ -264,7 +264,7 @@ int16_t PX4UARTDriver::txspace()
  */
 int16_t PX4UARTDriver::read() 
 { 
-	uint8_t c;
+	/*uint8_t c;
     if (_uart_owner_pid != getpid()){
         return -1;
     }
@@ -280,7 +280,8 @@ int16_t PX4UARTDriver::read()
     }
     c = _readbuf[_readbuf_head];
     BUF_ADVANCEHEAD(_readbuf, 1);
-	return c;
+	return c;*/
+	return -1;
 }
 /*****************************************
  * function : PX4UARTDriver::ch_read
@@ -291,7 +292,7 @@ int16_t PX4UARTDriver::read()
  * 输出：读包的长度。
  ***************************************** */
 //p1 is tail,p2 is head
-#define CHGAP(p1,p2) (((p1) > (p2)) ? ((p1) - (p2)) : ((p1) - (p2) + _readbuf_size))
+#define CHGAP(p1,p2) (((p1) >= (p2)) ? ((p1) - (p2)) : ((p1) - (p2) + _readbuf_size))
 #define CHBACK(p) (p - 1 > -1) ? (p-1) : (p + _readbuf_size -1)
 #define CHFORE(p) (p + 1 == _readbuf_size) ? 0 : (p+1)
 int16_t PX4UARTDriver::ch_read(unsigned char* buf,int len)
@@ -301,46 +302,40 @@ int16_t PX4UARTDriver::ch_read(unsigned char* buf,int len)
 		return -1;
 	}
 	//Second,we fork two pointer.
-	uint16_t tail1 = CHBACK(_readbuf_tail);//point to the value
-	uint16_t tail2 = _readbuf_tail;//point to the not value
+	uint16_t tail1 = _readbuf_tail;//point to the value
+	uint16_t tail2 = _readbuf_tail;
 	//Third,we scan from tail to see where is the first EB 90
-		//if meet with head:no package
-		//else if the gap from EB90 to the tail is long enough
-			//get all thing from EB90 to the tail
-		//else if the gap from EB90 to the tail is not long enough
-			//mark this position,when all finished
+		//if find EB90, copy all the data from head to buf,
 	int16_t mark_pos = -1;
-	while(tail1 != _readbuf_head){
+	uint16_t count = 0;
+
+	while(CHGAP(tail1,_readbuf_head) > 0){
 		uint16_t ttail = tail1;
 		tail1 = CHBACK(tail1);
 		if ((uint8_t)_readbuf[tail1] == 0x55 && (uint8_t)_readbuf[ttail] == 0xAA) {
-			if (mark_pos < 0) {
-				mark_pos = tail1;//we will move head at this position in the future
+			if (CHGAP(tail2,tail1) >= len){
+				//tail1 = tail2;
+				tail1 = (tail1 + len) % _readbuf_size;
 			}
-			if (CHGAP(tail2,tail1) < len) {
-				tail2 = tail1;
+			else {
+				tail2 = CHBACK(tail1);
 				continue;
 			}
-			for (int i = 0;i < len ;i ++){
-				buf[i] = _readbuf[tail1];
-				tail1 = CHFORE(tail1);
+			if (CHGAP(tail1,_readbuf_head) < len) {
+				_readbuf_head = tail1;
+				break;
+			}
+
+			while(true) {
+				buf[count] = _readbuf[_readbuf_head];
+				count ++;
+				if(CHGAP(tail1,_readbuf_head) == 0) break;
+				BUF_ADVANCEHEAD(_readbuf, 1);
 			}
 			break;
 		}
 	}
-	if (mark_pos < 0) {//never find EB90
-		return -1;
-	}
-	else {
-		if (CHGAP(_readbuf_tail,mark_pos) < CHGAP(_readbuf_tail,tail1)) {
-			_readbuf_head = mark_pos;
-		}
-		else {
-			_readbuf_head = tail1;
-		}
-		//cout << "mark_pos=" << mark_pos << endl;
-		return 1;
-	}
+	return count;
 }
 /* 
    write one byte to the buffer

@@ -307,12 +307,20 @@ void Copter::rc_loop()
     /*******************************************
      * 添加者:程志强
      * 描述:首先向两个舵机发送指令，然后接受数据，并向日志中书写数据
-     * 修改日期：2016/5/5
+     * 修改日期：2016/5/5,2016/6/24
+     * 频率提高到400Hz
      ******************************************* */
+    /*******************************************
+             * 添加者:程志强
+             * 描述:首先向两个舵机发送指令，然后接受数据，并向日志中书写数据
+             * 修改日期：2016/6/24
+             ******************************************* */
     chuart.send_token();
-    if (chuart.readUart() > 0) {
-    	DataFlash.Log_Write_Act(chuart.sd[chuart.num],chuart.num);
-    }
+    chuart.readUart();
+
+    DataFlash.Log_Write_Act(chuart.sd[0],0);
+    DataFlash.Log_Write_Act(chuart.sd[1],1);
+
 }
 
 // throttle_loop - should be run at 50 hz
