@@ -1720,7 +1720,7 @@ void DataFlash_Class::Log_Write_Act(Servo_data &tuart,uint8_t num){
 				LOG_PACKET_HEADER_INIT(LOG_CHACT1_MSG),
 				time_us     : hal.scheduler->micros64(),
 				pos1		: (float)(tuart.pos)/(float)1000.0,
-				vel1		: (float)(tuart.vel)/(float)1000.0
+				vel1		: (float)(0.0)/(float)1000.0
 		};
 		WriteBlock(&pkt, sizeof(pkt));
 	}
@@ -1729,7 +1729,7 @@ void DataFlash_Class::Log_Write_Act(Servo_data &tuart,uint8_t num){
 				LOG_PACKET_HEADER_INIT(LOG_CHACT2_MSG),
 				time_us     : hal.scheduler->micros64(),
 				pos1		: (float)(tuart.pos)/(float)1000.0,
-				vel1		: (float)(tuart.vel)/(float)1000.0
+				vel1		: (float)(0.0)/(float)1000.0
 		};
 		WriteBlock(&pkt, sizeof(pkt));
 	}
