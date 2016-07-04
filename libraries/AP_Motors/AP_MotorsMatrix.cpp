@@ -217,6 +217,36 @@ void AP_MotorsMatrix::output_armed_stabilizing()
     throttle_radio_output = calc_throttle_radio_output();
     // calculate roll and pitch for each motor
     // set rpy_low and rpy_high to the lowest and highest values of the motors
+	
+	//增加条件， if we are not sending a throttle output, we cut the motors
+	 if (_throttle_control_input == 0) 
+	   {
+        // range check spin_when_armed
+        if (_spin_when_armed_ramped < 0) {
+             _spin_when_armed_ramped = 0;
+        }
+        if (_spin_when_armed_ramped > _min_throttle) {
+            _spin_when_armed_ramped = _min_throttle;
+        }
+		for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
+            // spin motors at minimum
+            if (motor_enabled[i]) {
+                motor_out[i] = _throttle_radio_min + _spin_when_armed_ramped;
+            }
+        }
+	  
+        // Every thing is limited
+        limit.roll_pitch = true;
+        limit.yaw = true;
+        limit.throttle_lower = true;
+	   }
+	   else
+	   {
+		   // check if throttle is below limit
+		    if (throttle_radio_output <= out_min_pwm) {       // perhaps being at min throttle itself is not a problem, only being under is
+            limit.throttle_lower = true;
+        }
+		/////到这里一段为止/////////////   
     for (i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++) {
         if (motor_enabled[i]) {
             rpy_out[i] = roll_pwm * _roll_factor[i] * get_compensation_gain() +
@@ -340,6 +370,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
         if (motor_enabled[i]) {
             motor_out[i] = out_best_thr_pwm+thr_adj +
                             rpy_scale*rpy_out[i];
+			
         }
     }
 
@@ -356,7 +387,7 @@ void AP_MotorsMatrix::output_armed_stabilizing()
             motor_out[i] = constrain_int16(motor_out[i], out_min_pwm, out_max_pwm);
         }
     }
-
+    }///else的括号在这里
     // send output to each motor
     for( i=0; i<AP_MOTORS_MAX_NUM_MOTORS; i++ ) {
         if( motor_enabled[i] ) {
