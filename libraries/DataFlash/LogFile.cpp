@@ -1706,3 +1706,31 @@ void DataFlash_Class::Log_Write_RPM(const AP_RPM &rpm_sensor)
     };
     WriteBlock(&pkt, sizeof(pkt));
 }
+/*****************************************
+ * function : Log_Write_Act
+ * 作者：THU czq
+ * 描述：用于记录舵机数据
+ * 日期：2016/5/6
+ * 输入：Servo_data,其中包含要记录的数据。num，表示是记录的哪个舵机
+ * 输出：无
+ ***************************************** */
+void DataFlash_Class::Log_Write_Act(Servo_data &tuart,uint8_t num){
+	if (num == 0) {
+		struct log_CHACT1 pkt = {
+				LOG_PACKET_HEADER_INIT(LOG_CHACT1_MSG),
+				time_us     : hal.scheduler->micros64(),
+				pos1		: (float)(tuart.pos)/(float)1000.0,
+				vel1		: (float)(0.0)/(float)1000.0
+		};
+		WriteBlock(&pkt, sizeof(pkt));
+	}
+	else{
+		struct log_CHACT1 pkt = {
+				LOG_PACKET_HEADER_INIT(LOG_CHACT2_MSG),
+				time_us     : hal.scheduler->micros64(),
+				pos1		: (float)(tuart.pos)/(float)1000.0,
+				vel1		: (float)(0.0)/(float)1000.0
+		};
+		WriteBlock(&pkt, sizeof(pkt));
+	}
+}

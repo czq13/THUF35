@@ -264,7 +264,7 @@ int16_t PX4UARTDriver::txspace()
  */
 int16_t PX4UARTDriver::read() 
 { 
-	uint8_t c;
+	/*uint8_t c;
     if (_uart_owner_pid != getpid()){
         return -1;
     }
@@ -280,9 +280,63 @@ int16_t PX4UARTDriver::read()
     }
     c = _readbuf[_readbuf_head];
     BUF_ADVANCEHEAD(_readbuf, 1);
-	return c;
+	return c;*/
+	return -1;
 }
+/*****************************************
+ * function : PX4UARTDriver::ch_read
+ * 作者：THU czq
+ * 描述：用于从内存池中读出舵机数据。该函数从后往前读，可处理固定长度，固定开头的数据帧。未加校验和
+ * 日期：2016/5/5
+ * 输入：缓存地址，数据帧长度
+ * 输出：读包的长度。
+ ***************************************** */
+//p1 is tail,p2 is head
+#define CHGAP(p1,p2) (((p1) >= (p2)) ? ((p1) - (p2)) : ((p1) - (p2) + _readbuf_size))
+#define CHBACK(p) (p - 1 > -1) ? (p-1) : (p + _readbuf_size -1)
+#define CHFORE(p) (p + 1 == _readbuf_size) ? 0 : (p+1)
+int16_t PX4UARTDriver::ch_read(unsigned char* buf,int len)
+{
+	//First,we will see if the gap between head and tail is long enough
+	if (CHGAP(_readbuf_tail,_readbuf_head) < len) {
+		return -1;
+	}
+	//Second,we fork two pointer.
+	uint16_t tail1 = _readbuf_tail;//point to the value
+	uint16_t tail2 = _readbuf_tail;
+	//Third,we scan from tail to see where is the first EB 90
+		//if find EB90, copy all the data from head to buf,
+	int16_t mark_pos = -1;
+	uint16_t count = 0;
 
+	while(CHGAP(tail1,_readbuf_head) > 0){
+		uint16_t ttail = tail1;
+		tail1 = CHBACK(tail1);
+		if ((uint8_t)_readbuf[tail1] == 0x55 && (uint8_t)_readbuf[ttail] == 0xAA) {
+			if (CHGAP(tail2,tail1) >= len){
+				//tail1 = tail2;
+				tail1 = (tail1 + len) % _readbuf_size;
+			}
+			else {
+				tail2 = CHBACK(tail1);
+				continue;
+			}
+			if (CHGAP(tail1,_readbuf_head) < len) {
+				_readbuf_head = tail1;
+				break;
+			}
+
+			while(true) {
+				buf[count] = _readbuf[_readbuf_head];
+				count ++;
+				if(CHGAP(tail1,_readbuf_head) == 0) break;
+				BUF_ADVANCEHEAD(_readbuf, 1);
+			}
+			break;
+		}
+	}
+	return count;
+}
 /* 
    write one byte to the buffer
  */
