@@ -31,7 +31,8 @@ PX4UARTDriver::PX4UARTDriver(const char *devpath, const char *perf_name) :
     _in_timer(false),
     _perf_uart(perf_alloc(PC_ELAPSED, perf_name)),
     _os_start_auto_space(-1),
-    _flow_control(FLOW_CONTROL_DISABLE)
+    _flow_control(FLOW_CONTROL_DISABLE),
+	_devname(perf_name)
 {
 }
 
@@ -264,7 +265,7 @@ int16_t PX4UARTDriver::txspace()
  */
 int16_t PX4UARTDriver::read() 
 { 
-	/*uint8_t c;
+	uint8_t c;
     if (_uart_owner_pid != getpid()){
         return -1;
     }
@@ -280,8 +281,8 @@ int16_t PX4UARTDriver::read()
     }
     c = _readbuf[_readbuf_head];
     BUF_ADVANCEHEAD(_readbuf, 1);
-	return c;*/
-	return -1;
+	return c;
+	//return -1;
 }
 /*****************************************
  * function : PX4UARTDriver::ch_read
