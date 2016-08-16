@@ -48,6 +48,7 @@ public:
 
 private:
     const char *_devpath;
+    const char *_devname;
     int _fd;
     uint32_t _baudrate;
     volatile bool _initialised;
