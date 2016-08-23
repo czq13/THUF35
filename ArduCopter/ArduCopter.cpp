@@ -297,7 +297,7 @@ void Copter::fast_loop()
 
 // rc_loops - reads user input from transmitter/receiver
 // called at 100hz
-
+extern double a_pos_pre2; //第二级舵机的位置预测值
 void Copter::rc_loop()
 {
     // Read radio and 3-position switch on radio
@@ -317,9 +317,11 @@ void Copter::rc_loop()
              ******************************************* */
     chuart.send_token();
     chuart.readUart();
-
-    DataFlash.Log_Write_Act(chuart.sd[0],0);
-    DataFlash.Log_Write_Act(chuart.sd[1],1);
+    //a_pos_pre2 = 1;
+    //DataFlash.Log_Write_Act(chuart.sd[0],0,chuart.sInput1,chuart.sInput2);
+    //DataFlash.Log_Write_Act(chuart.sd[1],1,chuart.sInput1,chuart.sInput2);
+    DataFlash.Log_Write_Act(chuart.sd[0],0,a_pos_pre2,chuart.sInput2);//a_pos_pre2
+    DataFlash.Log_Write_Act(chuart.sd[1],1,a_pos_pre2,chuart.sInput2);
 
 }
 
