@@ -32,7 +32,11 @@ PX4UARTDriver::PX4UARTDriver(const char *devpath, const char *perf_name) :
     _perf_uart(perf_alloc(PC_ELAPSED, perf_name)),
     _os_start_auto_space(-1),
     _flow_control(FLOW_CONTROL_DISABLE),
+<<<<<<< HEAD
     _devname(perf_name)
+=======
+	_devname(perf_name)
+>>>>>>> fb41b61d223e44b7d8d95637240a80dbc91f5925
 {
 }
 
@@ -265,8 +269,11 @@ int16_t PX4UARTDriver::txspace()
  */
 int16_t PX4UARTDriver::read() 
 { 
+<<<<<<< HEAD
     if (_devname[8] == 'D')
         return -1;
+=======
+>>>>>>> fb41b61d223e44b7d8d95637240a80dbc91f5925
 	uint8_t c;
     if (_uart_owner_pid != getpid()){
         return -1;
