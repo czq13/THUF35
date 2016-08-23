@@ -70,12 +70,15 @@ private:
 	//this is used to decide which uart we should send data
 	uint8_t servo_ToSend;
 	PX4::PX4UARTDriver* tmpUartD;
+	PX4::PX4UARTDriver* tmpUartE;
+	PX4::PX4UARTDriver* tmpUartB;
 	unsigned char buf[256];
 	int16_t ctimer1;
 	int16_t ctimer2;
+
+public:
 	float sInput1;
 	float sInput2;
-public:
 	uint8_t num;
 	Servo_data sd[2];
 	AP_CHuart();

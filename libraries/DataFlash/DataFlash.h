@@ -129,7 +129,7 @@ public:
      * 描述:记录舵机数据的函数
      * 修改日期：2016/5/6
      ******************************************* */
-    void Log_Write_Act(Servo_data &tuart,uint8_t num);
+    void Log_Write_Act(Servo_data &tuart,uint8_t num,float s1,float s2);
 
     // This structure provides information on the internal member data of a PID for logging purposes
     struct PID_Info {
