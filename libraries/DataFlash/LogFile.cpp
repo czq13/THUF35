@@ -1714,13 +1714,13 @@ void DataFlash_Class::Log_Write_RPM(const AP_RPM &rpm_sensor)
  * 输入：Servo_data,其中包含要记录的数据。num，表示是记录的哪个舵机
  * 输出：无
  ***************************************** */
-void DataFlash_Class::Log_Write_Act(Servo_data &tuart,uint8_t num){
+void DataFlash_Class::Log_Write_Act(Servo_data &tuart,uint8_t num,float s1,float s2){
 	if (num == 0) {
 		struct log_CHACT1 pkt = {
 				LOG_PACKET_HEADER_INIT(LOG_CHACT1_MSG),
 				time_us     : hal.scheduler->micros64(),
-				pos1		: (float)(tuart.pos)/(float)1000.0,
-				vel1		: (float)(0.0)/(float)1000.0
+				pos1		: (float)(tuart.pos) * (float)0.15,
+				vel1		: s1
 		};
 		WriteBlock(&pkt, sizeof(pkt));
 	}
@@ -1728,8 +1728,8 @@ void DataFlash_Class::Log_Write_Act(Servo_data &tuart,uint8_t num){
 		struct log_CHACT1 pkt = {
 				LOG_PACKET_HEADER_INIT(LOG_CHACT2_MSG),
 				time_us     : hal.scheduler->micros64(),
-				pos1		: (float)(tuart.pos)/(float)1000.0,
-				vel1		: (float)(0.0)/(float)1000.0
+				pos1		: (float)(tuart.pos) * (float)0.15,
+				vel1		: s2
 		};
 		WriteBlock(&pkt, sizeof(pkt));
 	}

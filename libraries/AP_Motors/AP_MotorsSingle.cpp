@@ -25,7 +25,10 @@
 #include "AP_MotorsSingle.h"
 #include <RC_Channel/RC_Channel.h>
 #include <RC_Channel/RC_Channel_aux.h>
+#include <AP_CHuart/AP_CHuart.h>
+#include "stdio.h"
 extern const AP_HAL::HAL& hal;
+extern AP_CHuart chuart;
 
 
 const AP_Param::GroupInfo AP_MotorsSingle::var_info[] PROGMEM = {
@@ -97,8 +100,8 @@ void AP_MotorsSingle::set_update_rate( uint16_t speed_hz )
         1U << AP_MOTORS_MOT_2 |
         1U << AP_MOTORS_MOT_3 |
 		1U << AP_MOTORS_MOT_4 |
-        1U << AP_MOTORS_MOT_5 |//增加通道5
-        1U << AP_MOTORS_MOT_6 ;//增加通道6
+        1U << AP_MOTORS_MOT_5 |//澧炲姞閫氶亾5
+        1U << AP_MOTORS_MOT_6 ;//澧炲姞閫氶亾6
     hal.rcout->set_freq(mask, _servo_speed);
     uint32_t mask2 = 1U << AP_MOTORS_MOT_7;
     hal.rcout->set_freq(mask2, _speed_hz);
@@ -112,8 +115,8 @@ void AP_MotorsSingle::enable()
     hal.rcout->enable_ch(AP_MOTORS_MOT_2);
     hal.rcout->enable_ch(AP_MOTORS_MOT_3);
     hal.rcout->enable_ch(AP_MOTORS_MOT_4);
-	hal.rcout->enable_ch(AP_MOTORS_MOT_5);//增加5通道使能
-	hal.rcout->enable_ch(AP_MOTORS_MOT_6);//增加6通道使能
+	hal.rcout->enable_ch(AP_MOTORS_MOT_5);//澧炲姞5閫氶亾浣胯兘
+	hal.rcout->enable_ch(AP_MOTORS_MOT_6);//澧炲姞6閫氶亾浣胯兘
     hal.rcout->enable_ch(AP_MOTORS_MOT_7);
 }
 
@@ -125,8 +128,8 @@ void AP_MotorsSingle::output_min()
     hal.rcout->write(AP_MOTORS_MOT_2, _servo2.radio_min);
     hal.rcout->write(AP_MOTORS_MOT_3, _servo3.radio_min);
     hal.rcout->write(AP_MOTORS_MOT_4, _servo4.radio_min);
-	hal.rcout->write(AP_MOTORS_MOT_5, 1000);//设置5通道最小值1000
-	hal.rcout->write(AP_MOTORS_MOT_6, 1000);//设置6通道最小值1000
+	hal.rcout->write(AP_MOTORS_MOT_5, 1000);//璁剧疆5閫氶亾鏈�灏忓��1000
+	hal.rcout->write(AP_MOTORS_MOT_6, 1000);//璁剧疆6閫氶亾鏈�灏忓��1000
     hal.rcout->write(AP_MOTORS_MOT_7, _throttle_radio_min);
 }
 
@@ -134,7 +137,7 @@ void AP_MotorsSingle::output_min()
 //  this can be used to ensure other pwm outputs (i.e. for servos) do not conflict
 uint16_t AP_MotorsSingle::get_motor_mask()
 {
-    // single copter uses channels 1,2,3,4 and 7///////增加5,6/////
+    // single copter uses channels 1,2,3,4 and 7///////澧炲姞5,6/////
     return (1U << 0 | 1U << 1 | 1U << 2 | 1U << 3 | 1U << 4 |1U << 5 |1U << 6);
 }
 
@@ -188,6 +191,10 @@ void AP_MotorsSingle::output_armed_not_stabilizing()
 
 // sends commands to the motors
 // TODO pull code that is common to output_armed_not_stabilizing into helper functions
+static int16_t rc_5_i;
+static int16_t rc_6_i;
+static double a_posc2[4]={0,0,0,0};
+double a_pos_pre2; //第二级舵机的位置预测值
 void AP_MotorsSingle::output_armed_stabilizing()
 {
     int16_t throttle_radio_output;                                  // total throttle pwm value, summed onto throttle channel minimum, typically ~1100-1900
@@ -220,10 +227,10 @@ void AP_MotorsSingle::output_armed_stabilizing()
       throttle_radio_output = max(throttle_radio_output, out_min);
 	
 	/*******************************************
-     * 添加者:THU zb
-     * 描述:roll,pitch,yaw pwm value, initially calculated by calc_roll_pwm() but may be modified after, +/- 400
-	 * 描述:输出roll_out,pitch_out,yaw_out
-     * 修改日期：2016/5/16
+     * 娣诲姞鑰�:THU zb
+     * 鎻忚堪:roll,pitch,yaw pwm value, initially calculated by calc_roll_pwm() but may be modified after, +/- 400
+	 * 鎻忚堪:杈撳嚭roll_out,pitch_out,yaw_out
+     * 淇敼鏃ユ湡锛�2016/5/16
      ******************************************* */
        if (_throttle_control_input == 0) 
 	   {
@@ -234,10 +241,10 @@ void AP_MotorsSingle::output_armed_stabilizing()
         if (_spin_when_armed_ramped > _min_throttle) {
             _spin_when_armed_ramped = _min_throttle;
         }
-         hal.rcout->write(AP_MOTORS_MOT_1,   _throttle_radio_min + _min_throttle);
-         hal.rcout->write(AP_MOTORS_MOT_2,   _throttle_radio_min + _min_throttle);
-		 hal.rcout->write(AP_MOTORS_MOT_3,   _throttle_radio_min + _min_throttle);
-		 hal.rcout->write(AP_MOTORS_MOT_4,   _throttle_radio_min + _min_throttle);
+         hal.rcout->write(AP_MOTORS_MOT_1,   _throttle_radio_min +_min_throttle);
+         hal.rcout->write(AP_MOTORS_MOT_2,   _throttle_radio_min +_min_throttle);
+		 hal.rcout->write(AP_MOTORS_MOT_3,   _throttle_radio_min +_min_throttle);
+		 hal.rcout->write(AP_MOTORS_MOT_4,   _throttle_radio_min +_min_throttle);
 	   
         // Every thing is limited
         
@@ -251,11 +258,13 @@ void AP_MotorsSingle::output_armed_stabilizing()
     int16_t pitch_pwm;                                              // pitch pwm value, initially calculated by calc_roll_pwm() but may be modified after, +/- 400  
     int16_t yaw_pwm;     											// yaw pwm value, initially calculated by calc_roll_pwm() but may be modified after, +/- 400  
 	double a_nozzle = 25/57.3;
-	double a1_nozzle; //喷管一级转动角度值
-	double a2_nozzle; //喷管二级转动角度值
-	double Ky_nozzle; //喷管左右偏转角度值，如果保持喷管从垂直到水平变化，不左右偏这个值为零，若左右偏Ky度，实际喷管就偏Ky度
-	double Kn_nozzle; //喷管收入喷管期望到达的角度值//
-	
+	double a1_nozzle; //喷管第一级转动角度值
+	double a2_nozzle; //喷管第二级转动角度值
+	double Ky_nozzle; //喷管左右偏转角度，如果保持喷管从垂直到水平变化，不左右偏这个值为零，若左右偏Ky度，实际喷管就偏Ky度
+	double Kn_nozzle; //喷管随动角度
+	double  c1_nozzle; //一级舵机输入角度
+	double  c2_nozzle; //二级舵机输入角度
+
 	
 	roll_pwm  = calc_roll_pwm();
     pitch_pwm = calc_pitch_pwm();
@@ -272,63 +281,88 @@ void AP_MotorsSingle::output_armed_stabilizing()
     rc_5.radio_out = rc_5.radio_in;
 	rc_6.radio_out = rc_6.radio_in;
 	
-	 // send output to each motor,1-4通道实现+形式旋翼模式	
+	
+
+	
+		// send output to each motor,1-4閫氶亾瀹炵幇+褰㈠紡鏃嬬考妯″紡
     hal.rcout->write(AP_MOTORS_MOT_1, throttle_radio_output - roll_pwm);
     hal.rcout->write(AP_MOTORS_MOT_2, throttle_radio_output + roll_pwm);
     hal.rcout->write(AP_MOTORS_MOT_3, throttle_radio_output + pitch_pwm);
     hal.rcout->write(AP_MOTORS_MOT_4, throttle_radio_output - pitch_pwm + 60);
-    hal.rcout->write(AP_MOTORS_MOT_7, throttle_radio_output + yaw_pwm);
+    hal.rcout->write(AP_MOTORS_MOT_7, 15*yaw_pwm);
 	
-	//手动调节两级喷管，5,6各自控制一级
-	//hal.rcout->write(AP_MOTORS_MOT_5, rc_5.radio_out);//手动调节//
-	//hal.rcout->write(AP_MOTORS_MOT_6, rc_6.radio_out);//手动调节//
+	 
+	
+	//鎵嬪姩璋冭妭涓ょ骇鍠风锛�5,6鍚勮嚜鎺у埗涓�绾�
+	//hal.rcout->write(AP_MOTORS_MOT_5, rc_5.radio_out);//鎵嬪姩璋冭妭//
+	//hal.rcout->write(AP_MOTORS_MOT_6, rc_6.radio_out);//鎵嬪姩璋冭妭//
 	
 	
 	///////////////////////////////////////////////////////////////
-	//                  大喷管垂直起降程序段                     //
+	//                  澶у柗绠″瀭鐩磋捣闄嶇▼搴忔                     //
 	///////////////////////////////////////////////////////////////
 	
-	//////喷灌模型函数///////
-	Ky_nozzle = 0;//(0.1*(rc_5.radio_out) - 30 )/57.3;//输入偏转0~10度 1000~2000映射-10~10度 在换成弧度
-	Kn_nozzle = (0.09*(rc_6.radio_out) - 90 )/57.3;//输入偏转0~90度 1000~2000映射90~0度 在换成弧度
-	
-	//if((KN*57.3) < 90) { 
-	a2_nozzle =  acos((cos(Kn_nozzle/2)-cos(a_nozzle)*cos(a_nozzle))/(sin(a_nozzle)*sin(a_nozzle))) ;//计算二级
-	a1_nozzle =  atan(tan(a2_nozzle/2)*cos(a_nozzle)) + Ky_nozzle  ;  	//计算一级
-	//KN++;
-	//}
-	///调节偏航使能开关///
-	/*if (rc_7.radio_in < 1000)
+	//////防止遥控器输入抖动///////
+	if (abs(rc_5_i - rc_5.radio_out) > 2)
+		rc_5_i = rc_5.radio_out;
+	if (abs(rc_6_i - rc_6.radio_out) > 2)
+		rc_6_i = rc_6.radio_out;
+	Ky_nozzle = (0.02*(rc_5_i) - 30.0 )/57.3;//遥控器5 1000~2000映射-10~10度 在换成弧度
+	Kn_nozzle = (200.0 - 0.1*(rc_6_i) )/57.3;//遥控器6 1000~2000映射100~0度 在换成弧度
+	//printf("rc_5=%d,rc_6=%d   ",rc_5.radio_out,rc_6.radio_out);
+	if(Kn_nozzle>99.9999/57.3)
 	{
-        
-		 hal.rcout->write(AP_MOTORS_MOT_6, int (2.697 * a1_nozzle * 57.3 + 985));
-		 hal.rcout->write(AP_MOTORS_MOT_5, int (2.188 * a2_nozzle * 57.3 + 1000));
+		Kn_nozzle=99.9999/57.3;
 	}
-	else if(rc_7.radio_in > 2000)
+	if(Kn_nozzle<0.0001)
 	{
-		
-		hal.rcout->write(AP_MOTORS_MOT_6, int(2.697 * a1_nozzle * 57.3 + 985 - 0.5*yaw_pwm));//输出偏转62.658~0度映射 1000~1169 后半部分是偏航自动控制调节
-	    hal.rcout->write(AP_MOTORS_MOT_5, int(2.188 * a2_nozzle * 57.3 + 1000));//输出偏转129.78~0度 映射1000~1284
+		Kn_nozzle=0.0001;
 	}
-	*/
-	//if(yaw_pwm < -20)
-	//{
-	//	yaw_pwm = -20;
-	//}
-	//else if(yaw_pwm > 20)
-	//{
-	//	yaw_pwm = 20;
-	//}
-	hal.rcout->write(AP_MOTORS_MOT_6, int(2.697 * a1_nozzle * 57.3 + 985 - 4*yaw_pwm));//输出偏转62.658~0度映射 1000~1169 后半部分是偏航自动控制调节
-	hal.rcout->write(AP_MOTORS_MOT_5, int(2.188 * a2_nozzle * 57.3 + 1000));//输出偏转129.78~0度 映射1000~1284
-
-
-	  }
+    //chuart.setServoCtrl( -(180-a2_nozzle * 57.3)*2.5 , -(90-a1_nozzle * 57.3)*2.55 );
+	  
+	//chuart.sd[0].pos;//position of actuator 1
+    //chuart.sd[1].pos;//position of actuator 2
 	
 	
+	a2_nozzle =  acos((cos(Kn_nozzle/2)-cos(a_nozzle)*cos(a_nozzle))/(sin(a_nozzle)*sin(a_nozzle))) ;//二级喷管角度
+	c2_nozzle = -(180-a2_nozzle * 57.3)*2.5; //二级舵机输入角度值
 
+	a_pos_pre2=0.75*chuart.sd[1].pos*0.15+0.25* a_posc2[3];
+	a_pos_pre2=0.75*a_pos_pre2+0.25* a_posc2[2];
+	a_pos_pre2=0.75*a_pos_pre2+0.25* a_posc2[1];
+	a_pos_pre2=0.75*a_pos_pre2+0.25* a_posc2[0];
 
-   
+	
+	if((c2_nozzle-a_pos_pre2) > 3.5)
+	{
+		c2_nozzle = a_pos_pre2 + 3.5;
+	}
+	else if((c2_nozzle-a_pos_pre2) < -3.5)
+	{
+		c2_nozzle = a_pos_pre2 -3.5;
+	}
+    if(c2_nozzle > 0)
+    {
+        c2_nozzle = 0;
+    }
+    else if(c2_nozzle < -450)
+    {
+        c2_nozzle = -450;
+    }
+
+	a_posc2[3]=a_posc2[2];
+	a_posc2[2]=a_posc2[1];
+	a_posc2[1]=a_posc2[0];
+	a_posc2[0]=c2_nozzle;
+
+	a2_nozzle= (180+c2_nozzle/2.5)/57.3;
+	
+    a1_nozzle =  atan(tan(a2_nozzle/2)*cos(a_nozzle)) + Ky_nozzle  ;  	//一级喷管角度
+	c1_nozzle =  -(90-a1_nozzle * 57.3-yaw_pwm*1.5)*2.55;//转换成一级舵机输入角度值
+	chuart.setServoCtrl( c1_nozzle ,  c2_nozzle );
+	hal.rcout->write(AP_MOTORS_MOT_6, int(-(90-a1_nozzle * 57.3-yaw_pwm*1.5)*2.55));//输出偏转62.658~0度映射 1000~1169 后半部分是偏航自动控制调节
+	hal.rcout->write(AP_MOTORS_MOT_5, int(-(180-a2_nozzle * 57.3)*2.5));//输出偏转129.78~0度 映射1000~1284
+	 }
 }
 
 // output_disarmed - sends commands to the motors
