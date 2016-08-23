@@ -32,7 +32,11 @@ PX4UARTDriver::PX4UARTDriver(const char *devpath, const char *perf_name) :
     _perf_uart(perf_alloc(PC_ELAPSED, perf_name)),
     _os_start_auto_space(-1),
     _flow_control(FLOW_CONTROL_DISABLE),
+<<<<<<< HEAD
+    _devname(perf_name)
+=======
 	_devname(perf_name)
+>>>>>>> fb41b61d223e44b7d8d95637240a80dbc91f5925
 {
 }
 
@@ -265,6 +269,11 @@ int16_t PX4UARTDriver::txspace()
  */
 int16_t PX4UARTDriver::read() 
 { 
+<<<<<<< HEAD
+    if (_devname[8] == 'D')
+        return -1;
+=======
+>>>>>>> fb41b61d223e44b7d8d95637240a80dbc91f5925
 	uint8_t c;
     if (_uart_owner_pid != getpid()){
         return -1;
@@ -286,11 +295,11 @@ int16_t PX4UARTDriver::read()
 }
 /*****************************************
  * function : PX4UARTDriver::ch_read
- * ×÷Õß£ºTHU czq
- * ÃèÊö£ºÓÃÓÚ´ÓÄÚ´æ³ØÖÐ¶Á³ö¶æ»úÊý¾Ý¡£¸Ãº¯Êý´ÓºóÍùÇ°¶Á£¬¿É´¦Àí¹Ì¶¨³¤¶È£¬¹Ì¶¨¿ªÍ·µÄÊý¾ÝÖ¡¡£Î´¼ÓÐ£ÑéºÍ
- * ÈÕÆÚ£º2016/5/5
- * ÊäÈë£º»º´æµØÖ·£¬Êý¾ÝÖ¡³¤¶È
- * Êä³ö£º¶Á°üµÄ³¤¶È¡£
+ * ä½œè€…ï¼šTHU czq
+ * æè¿°ï¼šç”¨äºŽä»Žå†…å­˜æ± ä¸­è¯»å‡ºèˆµæœºæ•°æ®ã€‚è¯¥å‡½æ•°ä»ŽåŽå¾€å‰è¯»ï¼Œå¯å¤„ç†å›ºå®šé•¿åº¦ï¼Œå›ºå®šå¼€å¤´çš„æ•°æ®å¸§ã€‚æœªåŠ æ ¡éªŒå’Œ
+ * æ—¥æœŸï¼š2016/5/5
+ * è¾“å…¥ï¼šç¼“å­˜åœ°å€ï¼Œæ•°æ®å¸§é•¿åº¦
+ * è¾“å‡ºï¼šè¯»åŒ…çš„é•¿åº¦ã€‚
  ***************************************** */
 //p1 is tail,p2 is head
 #define CHGAP(p1,p2) (((p1) >= (p2)) ? ((p1) - (p2)) : ((p1) - (p2) + _readbuf_size))
